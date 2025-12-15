@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // ... (Votre code HTML widgetHTML reste identique) ...
     const widgetHTML = `
       <div id="kda-widget" class="fixed bottom-6 right-6 z-50 flex flex-col items-end font-sans">
           <!-- Chat Window -->
@@ -76,19 +75,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     toggleBtn.addEventListener('click', toggleChat);
     closeBtn.addEventListener('click', toggleChat);
-
-    // --- NOUVELLE FONCTION DE FORMATAGE ---
-    // --- FONCTION DE FORMATAGE CORRIGÉE ---
+    
     function formatText(text) {
         // 1. D'abord convertir les retours à la ligne en <br>
-        // C'est CRUCIAL de le faire en premier pour que le gras fonctionne même sur plusieurs lignes
         let formatted = text.replace(/\n/g, '<br>');
 
         // 2. Remplacer les doubles astérisques (**texte**) par du gras
         formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-gray-900">$1</strong>');
         
         // 3. Remplacer aussi les simples astérisques (*texte*) par du gras
-        // (Votre exemple "pas le dimanche" n'avait qu'une seule étoile)
         formatted = formatted.replace(/\*(.*?)\*/g, '<strong class="font-bold text-gray-900">$1</strong>');
 
         return formatted;
@@ -102,13 +97,10 @@ document.addEventListener("DOMContentLoaded", function () {
             ? 'self-end bg-gray-900 text-white rounded-2xl rounded-tr-none py-2 px-4 text-sm shadow-sm max-w-[85%]' 
             : 'self-start bg-white border border-gray-200 text-gray-700 rounded-2xl rounded-tl-none py-2 px-4 text-sm shadow-sm max-w-[85%]';
             
-        // --- MODIFICATION ICI : Appel de la fonction formatText ---
-        // Si c'est l'utilisateur, on affiche souvent le texte brut, 
-        // mais pour le bot on veut le formatage HTML.
         if (isUser) {
-            div.textContent = text; // Sécurité : textContent pour l'user (évite l'injection HTML)
+            div.textContent = text; 
         } else {
-            div.innerHTML = formatText(text); // HTML interprété pour le bot
+            div.innerHTML = formatText(text);
         }
 
         messagesContainer.appendChild(div);
