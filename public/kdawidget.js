@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. Création du HTML du widget
+    // ... (Votre code HTML widgetHTML reste identique) ...
     const widgetHTML = `
       <div id="kda-widget" class="fixed bottom-6 right-6 z-50 flex flex-col items-end font-sans">
           <!-- Chat Window -->
@@ -23,8 +23,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
               <!-- Messages Area -->
               <div id="kda-messages" class="h-80 overflow-y-auto p-4 bg-gray-50 flex flex-col gap-3">
+                  <!-- Message de bienvenue statique avec formatage appliqué manuellement pour l'exemple -->
                   <div class="self-start bg-white border border-gray-200 text-gray-700 rounded-2xl rounded-tl-none py-2 px-4 text-sm shadow-sm max-w-[85%]">
-                      Bonjour ! 👋 Je suis l'assistant virtuel de Kadea. Je peux répondre à vos questions sur nos formations Code, Data et Marketing.
+                      Bonjour ! 👋 Je suis l'assistant virtuel de Kadea.
                   </div>
               </div>
 
@@ -48,7 +49,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.body.insertAdjacentHTML('beforeend', widgetHTML);
 
-    // 2. Logique JS
     const toggleBtn = document.getElementById('kda-toggle-btn');
     const closeBtn = document.getElementById('kda-close-btn');
     const chatWindow = document.getElementById('kda-chat-window');
@@ -57,10 +57,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const messagesContainer = document.getElementById('kda-messages');
     const submitBtn = form.querySelector('button');
 
-    // API ENDPOINT (Relatif pour passer par le proxy PHP local)
-    // On remonte d'un dossier (public) pour aller chercher api/chat.php si besoin, 
-    // mais ici on suppose que le serveur PHP sert 'public' comme racine ou via router.
-    // Ajustement : Appel vers ../api/chat.php si on est en local simple, ou /api/chat.php
     const API_URL = '../api/chat.php'; 
 
     function toggleChat() {
@@ -81,13 +77,40 @@ document.addEventListener("DOMContentLoaded", function () {
     toggleBtn.addEventListener('click', toggleChat);
     closeBtn.addEventListener('click', toggleChat);
 
+    // --- NOUVELLE FONCTION DE FORMATAGE ---
+    // --- FONCTION DE FORMATAGE CORRIGÉE ---
+    function formatText(text) {
+        // 1. D'abord convertir les retours à la ligne en <br>
+        // C'est CRUCIAL de le faire en premier pour que le gras fonctionne même sur plusieurs lignes
+        let formatted = text.replace(/\n/g, '<br>');
+
+        // 2. Remplacer les doubles astérisques (**texte**) par du gras
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-gray-900">$1</strong>');
+        
+        // 3. Remplacer aussi les simples astérisques (*texte*) par du gras
+        // (Votre exemple "pas le dimanche" n'avait qu'une seule étoile)
+        formatted = formatted.replace(/\*(.*?)\*/g, '<strong class="font-bold text-gray-900">$1</strong>');
+
+        return formatted;
+    }
+
     function addMessage(text, sender) {
         const isUser = sender === 'user';
         const div = document.createElement('div');
+        
         div.className = isUser 
             ? 'self-end bg-gray-900 text-white rounded-2xl rounded-tr-none py-2 px-4 text-sm shadow-sm max-w-[85%]' 
             : 'self-start bg-white border border-gray-200 text-gray-700 rounded-2xl rounded-tl-none py-2 px-4 text-sm shadow-sm max-w-[85%]';
-        div.innerHTML = text; // Attention aux XSS en prod, ici simple pour démo
+            
+        // --- MODIFICATION ICI : Appel de la fonction formatText ---
+        // Si c'est l'utilisateur, on affiche souvent le texte brut, 
+        // mais pour le bot on veut le formatage HTML.
+        if (isUser) {
+            div.textContent = text; // Sécurité : textContent pour l'user (évite l'injection HTML)
+        } else {
+            div.innerHTML = formatText(text); // HTML interprété pour le bot
+        }
+
         messagesContainer.appendChild(div);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
@@ -115,7 +138,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const message = input.value.trim();
         if (!message) return;
 
-        // UI Updates
         addMessage(message, 'user');
         input.value = '';
         input.disabled = true;
@@ -135,7 +157,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (data.status === 'success') {
                 addMessage(data.reply, 'bot');
             } else {
-                addMessage("Oups, une erreur est survenue. Vérifiez la configuration.", 'bot');
+                addMessage("Oups, une erreur est survenue.", 'bot');
                 console.error(data);
             }
         } catch (error) {
